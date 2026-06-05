@@ -4,8 +4,9 @@ import { MoneyItem } from './MoneyItem.js'
 import { formatYuan } from '../utils/helpers.js'
 
 export class CashTray extends Container {
-  constructor() {
+  constructor(onRemoveMoney) {
     super()
+    this.onRemoveMoney = onRemoveMoney
     this.placedItems = []
     this.currentAmount = 0
     this._build()
@@ -49,7 +50,7 @@ export class CashTray extends Container {
     this.addChild(this._amountText)
 
     this._hintText = new Text({
-      text: '把硬币和纸币拖到这里～',
+      text: '把硬币和纸币拖到这里，点击可撤回～',
       style: {
         fontFamily: 'Arial, sans-serif',
         fontSize: 16,
@@ -65,7 +66,8 @@ export class CashTray extends Container {
   addMoney(denom) {
     const item = new MoneyItem(denom)
     item.scale.set(0.55)
-    item.eventMode = 'none'
+    item.eventMode = 'static'
+    item.cursor = 'pointer'
 
     const idx = this.placedItems.length
     const cols = 8
@@ -74,6 +76,10 @@ export class CashTray extends Container {
     item.x = 60 + col * 78
     item.y = 55 + row * 42
     item.alpha = 0
+
+    item.on('pointerdown', () => {
+      this.removeMoney(item)
+    })
 
     this.addChild(item)
     this.placedItems.push(item)
@@ -86,6 +92,41 @@ export class CashTray extends Container {
     this._animateIn(item)
 
     return this.currentAmount
+  }
+
+  removeMoney(item) {
+    const idx = this.placedItems.indexOf(item)
+    if (idx === -1) return
+
+    this.placedItems.splice(idx, 1)
+    this.currentAmount -= item.value
+
+    this.removeChild(item)
+    item.destroy()
+
+    this._amountText.text = `已收: ¥${formatYuan(this.currentAmount)}`
+
+    if (this.placedItems.length === 0) {
+      this._hintText.visible = true
+    }
+
+    this._repositionItems()
+
+    if (this.onRemoveMoney) {
+      this.onRemoveMoney(this.currentAmount)
+    }
+
+    return this.currentAmount
+  }
+
+  _repositionItems() {
+    const cols = 8
+    this.placedItems.forEach((item, idx) => {
+      const col = idx % cols
+      const row = Math.floor(idx / cols)
+      item.x = 60 + col * 78
+      item.y = 55 + row * 42
+    })
   }
 
   _animateIn(item) {

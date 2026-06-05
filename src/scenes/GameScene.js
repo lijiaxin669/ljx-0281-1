@@ -43,7 +43,9 @@ export class GameScene extends Container {
     this._orderArea.y = 80
     this.addChild(this._orderArea)
 
-    this._cashTray = new CashTray()
+    this._cashTray = new CashTray((newAmount) => {
+      this._onRemoveMoney()
+    })
     this._cashTray.x = 34
     this._cashTray.y = 290
     this.addChild(this._cashTray)
@@ -151,8 +153,6 @@ export class GameScene extends Container {
 
     if (Math.abs(diff) <= TOLERANCE) {
       this._onSuccess()
-    } else if (diff > TOLERANCE) {
-      this._onOverpay()
     }
   }
 
@@ -211,6 +211,16 @@ export class GameScene extends Container {
         this._levelMgr.errors
       )
     }, 200)
+  }
+
+  _onRemoveMoney() {
+    this._currentAmount = this._cashTray.currentAmount
+    this._orderArea.updateDiff(this._currentAmount)
+
+    const diff = Math.abs(this._currentAmount - this._targetAmount)
+    if (diff <= TOLERANCE && this._currentAmount > 0) {
+      this._onSuccess()
+    }
   }
 
   update(deltaTime) {

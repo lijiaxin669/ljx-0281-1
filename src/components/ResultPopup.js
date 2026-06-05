@@ -124,8 +124,10 @@ export class ResultPopup extends Container {
     this._titleText.text = '😅 再来一次'
     this._titleText.style.fill = COLORS.error
     this._subtitleText.text = `正确答案: ¥${formatYuan(targetAmount)}`
-    if (currentAmount > 0) {
-      this._detailText.text = `你付了 ¥${formatYuan(currentAmount)}，差 ¥${formatYuan(Math.abs(targetAmount - currentAmount))}`
+    if (currentAmount > targetAmount + 0.01) {
+      this._detailText.text = `你付了 ¥${formatYuan(currentAmount)}，多付了 ¥${formatYuan(currentAmount - targetAmount)}`
+    } else if (currentAmount > 0.01) {
+      this._detailText.text = `你付了 ¥${formatYuan(currentAmount)}，还差 ¥${formatYuan(targetAmount - currentAmount)}`
     } else {
       this._detailText.text = '时间到啦，下次加油！'
     }
