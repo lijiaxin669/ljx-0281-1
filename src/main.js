@@ -2,6 +2,7 @@ import { Application } from 'pixi.js'
 import { DESIGN_WIDTH, DESIGN_HEIGHT } from './config/denominations.js'
 import { StartScene } from './scenes/StartScene.js'
 import { GameScene } from './scenes/GameScene.js'
+import { ResultScene } from './scenes/ResultScene.js'
 
 async function main() {
   const app = new Application()
@@ -22,28 +23,45 @@ async function main() {
     app.screen.height / DESIGN_HEIGHT
   )
 
-  const startScene = new StartScene(() => {
-    app.stage.removeChild(startScene)
-    startScene.destroy()
-    const gameScene = new GameScene(() => {
-      app.stage.removeChild(gameScene)
-      gameScene.destroy()
-      const newStart = new StartScene(() => {
-        app.stage.removeChild(newStart)
-        newStart.destroy()
-        main()
-      })
-      app.stage.addChild(newStart)
-    })
-    app.stage.addChild(gameScene)
-    gameScene.startNewGame()
+  let currentScene = null
 
-    app.ticker.add((ticker) => {
-      gameScene.update(ticker.deltaTime / 60)
+  function setScene(scene) {
+    if (currentScene) {
+      app.stage.removeChild(currentScene)
+      currentScene.destroy({ children: true })
+    }
+    currentScene = scene
+    app.stage.addChild(scene)
+  }
+
+  function showStart() {
+    const start = new StartScene((mode) => showGame(mode))
+    setScene(start)
+  }
+
+  function showGame(mode) {
+    const game = new GameScene(mode, (runResult) => showResult(runResult))
+    setScene(game)
+    game.startNewGame()
+  }
+
+  function showResult(runResult) {
+    const result = new ResultScene({
+      ...runResult,
+      onPlayAgain: () => showGame(runResult.mode),
+      onHome: () => showStart(),
     })
+    setScene(result)
+  }
+
+  // 单一更新循环：仅当前场景实现了 update 时才驱动
+  app.ticker.add((ticker) => {
+    if (currentScene && typeof currentScene.update === 'function') {
+      currentScene.update(ticker.deltaTime / 60)
+    }
   })
 
-  app.stage.addChild(startScene)
+  showStart()
 }
 
 main().catch(console.error)

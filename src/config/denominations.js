@@ -1,9 +1,13 @@
 export const DENOMINATIONS = [
-  { value: 1,  type: 'coin', label: '1元',  color: 0xFFD700, strokeColor: 0xDAA520, radius: 30 },
-  { value: 5,  type: 'coin', label: '5元',  color: 0xC0C0C0, strokeColor: 0xA9A9A9, radius: 32 },
-  { value: 10, type: 'bill', label: '10元', color: 0x4169E1, strokeColor: 0x3155B1, width: 100, height: 52 },
-  { value: 20, type: 'bill', label: '20元', color: 0x8B4513, strokeColor: 0x6B3410, width: 100, height: 52 },
+  { value: 1,  type: 'coin', label: '1元',  color: 0xFFD700, strokeColor: 0xDAA520, radius: 28 },
+  { value: 5,  type: 'coin', label: '5元',  color: 0xC0C0C0, strokeColor: 0xA9A9A9, radius: 30 },
+  { value: 10, type: 'bill', label: '10元', color: 0x4169E1, strokeColor: 0x3155B1, width: 92, height: 50 },
+  { value: 20, type: 'bill', label: '20元', color: 0x8B4513, strokeColor: 0x6B3410, width: 92, height: 50 },
+  { value: 50, type: 'bill', label: '50元', color: 0x7E57C2, strokeColor: 0x5E35B1, width: 92, height: 50 },
 ]
+
+// 找零模式下顾客可能用来付款的面额（含 100 元大钞，仅用于展示）
+export const PAYMENT_NOTES = [5, 10, 20, 50, 100]
 
 export const LEVEL_CONFIG = [
   { level: 1, maxAmount: 10,  countdown: 30, comboToAdvance: 5, maxErrors: 3 },

@@ -133,6 +133,7 @@ export class CashTray extends Container {
     let frame = 0
     const total = 8
     const tick = () => {
+      if (item.destroyed) return
       frame++
       item.alpha = frame / total
       item.scale.set(0.55 * (0.8 + 0.2 * (frame / total)))

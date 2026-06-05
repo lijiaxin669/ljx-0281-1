@@ -1,5 +1,6 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { COLORS } from '../config/denominations.js'
+import { GAME_MODES } from '../config/gameModes.js'
 import { formatYuan } from '../utils/helpers.js'
 
 export class ResultPopup extends Container {
@@ -111,23 +112,38 @@ export class ResultPopup extends Container {
     return btn
   }
 
-  showSuccess(combo, level, score, levelUp) {
+  showSuccess(combo, level, score, levelUp, mode, bonus) {
     this.visible = true
-    this._titleText.text = levelUp ? '🎉 升级啦！' : '✅ 太棒了！'
+    this._nextBtn.visible = true
+    this._restartBtn.visible = false
+    if (levelUp) {
+      this._titleText.text = '🎉 升级啦！'
+    } else {
+      this._titleText.text = mode === GAME_MODES.CHANGE ? '💸 找对啦！' : '✅ 太棒了！'
+    }
     this._titleText.style.fill = COLORS.success
     this._subtitleText.text = `连击 ${combo} | 关卡 Lv.${level} | 得分 ${score}`
-    this._detailText.text = levelUp ? '难度提升，订单金额更大，时间更短！' : '继续加油，保持连击！'
+    const bonusText = bonus ? `本单 +${bonus} 分。` : ''
+    this._detailText.text = levelUp
+      ? `${bonusText}难度提升，金额更大、时间更短！`
+      : `${bonusText}继续加油，保持连击！`
   }
 
-  showFail(targetAmount, currentAmount, errors) {
+  showFail(order, currentAmount) {
     this.visible = true
-    this._titleText.text = '😅 再来一次'
+    this._nextBtn.visible = true
+    this._restartBtn.visible = true
+    const target = order.target
+    const isChange = order.mode === GAME_MODES.CHANGE
+    this._titleText.text = '😅 这单没凑对'
     this._titleText.style.fill = COLORS.error
-    this._subtitleText.text = `正确答案: ¥${formatYuan(targetAmount)}`
-    if (currentAmount > targetAmount + 0.01) {
-      this._detailText.text = `你付了 ¥${formatYuan(currentAmount)}，多付了 ¥${formatYuan(currentAmount - targetAmount)}`
+    this._subtitleText.text = isChange
+      ? `应找零: ¥${formatYuan(target)}`
+      : `正确答案: ¥${formatYuan(target)}`
+    if (currentAmount > target + 0.01) {
+      this._detailText.text = `你给了 ¥${formatYuan(currentAmount)}，多了 ¥${formatYuan(currentAmount - target)}`
     } else if (currentAmount > 0.01) {
-      this._detailText.text = `你付了 ¥${formatYuan(currentAmount)}，还差 ¥${formatYuan(targetAmount - currentAmount)}`
+      this._detailText.text = `你给了 ¥${formatYuan(currentAmount)}，还差 ¥${formatYuan(target - currentAmount)}`
     } else {
       this._detailText.text = '时间到啦，下次加油！'
     }

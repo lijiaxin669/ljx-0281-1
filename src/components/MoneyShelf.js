@@ -33,13 +33,15 @@ export class MoneyShelf extends Container {
     title.y = 8
     this.addChild(title)
 
-    const spacing = 170
-    const startX = 70
-    const coinY = 110
+    const n = DENOMINATIONS.length
+    const margin = 80
+    const usable = 700 - margin * 2
+    const spacing = n > 1 ? usable / (n - 1) : 0
+    const coinY = 115
 
     DENOMINATIONS.forEach((denom, i) => {
       const item = new MoneyItem(denom)
-      item.x = startX + i * spacing
+      item.x = margin + i * spacing
       item.y = coinY
       item.eventMode = 'static'
       item.cursor = 'grab'
