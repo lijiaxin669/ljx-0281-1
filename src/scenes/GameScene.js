@@ -131,7 +131,7 @@ export class GameScene extends Container {
     this._removedThisOrder = false
 
     this._statusBar.setLevel(this._levelMgr.currentLevel)
-    this._statusBar.setCombo(this._levelMgr.combo)
+    this._statusBar.setCombo(this._streak)
     this._statusBar.setScore(this._scoreMgr.getScore())
     this._statusBar.setTimer(this._countdown, this._totalTime)
 
@@ -226,7 +226,7 @@ export class GameScene extends Container {
     )
 
     this._statsMgr.recordSuccess({
-      mode: this._order.mode,
+      mode: this._mode,
       level: this._levelMgr.currentLevel,
       combo: this._streak,
       orderMs,
@@ -262,7 +262,6 @@ export class GameScene extends Container {
     this._isActive = false
     AudioManager.playFail()
 
-    this._streak = 0
     this._statsMgr.recordFail()
     const result = this._levelMgr.onTimeout()
     this._statusBar.setCombo(this._streak)

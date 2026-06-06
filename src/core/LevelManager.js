@@ -83,6 +83,7 @@ export class LevelManager {
   onError() {
     this.errors++
     this.totalOrders++
+    this.combo = 0
     if (this.errors >= this.getConfig().maxErrors) {
       this.errors = 0
       this.combo = 0

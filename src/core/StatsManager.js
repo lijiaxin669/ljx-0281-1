@@ -124,7 +124,7 @@ export class StatsManager {
       totalSuccess: this._lifetime.totalSuccess,
       totalFail: this._lifetime.totalFail,
       collectSuccess: this._lifetime.collectSuccess,
-      changeSuccess: this._lifetime.changeSuccess,
+      changeSuccess: this._session.collectSuccess,
       bestCombo: Math.max(this._lifetime.bestCombo, this._session.bestCombo),
       maxLevel: Math.max(this._lifetime.maxLevel, this._session.maxLevel),
       totalCoinsPlaced: this._lifetime.totalCoinsPlaced,
