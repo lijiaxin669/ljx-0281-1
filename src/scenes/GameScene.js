@@ -226,7 +226,7 @@ export class GameScene extends Container {
     )
 
     this._statsMgr.recordSuccess({
-      mode: this._mode,
+      mode: this._order.mode,
       level: this._levelMgr.currentLevel,
       combo: this._streak,
       orderMs,

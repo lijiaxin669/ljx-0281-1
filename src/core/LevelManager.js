@@ -55,7 +55,10 @@ export class LevelManager {
   // 偶尔故意多付一档，制造更大的找零金额。
   _pickPaymentNote(price) {
     const candidates = PAYMENT_NOTES.filter((n) => n >= price)
-    if (candidates.length === 0) return price
+    if (candidates.length === 0) {
+      // 没有足够大的面额，用最大面额保证有找零
+      return Math.max(...PAYMENT_NOTES) > price ? Math.max(...PAYMENT_NOTES) : price + 1
+    }
     let idx = 0
     // 30% 概率多付一档，让找零更有挑战
     if (candidates.length > 1 && Math.random() < 0.3) idx = 1
@@ -63,7 +66,7 @@ export class LevelManager {
     if (paid === price) {
       // 刚好整钞，相当于无需找零 → 强制再往上一档
       const next = candidates.find((n) => n > price)
-      paid = next || price
+      paid = next || (candidates[candidates.length - 1] > price ? candidates[candidates.length - 1] : price + 1)
     }
     return paid
   }
