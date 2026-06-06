@@ -27,6 +27,7 @@ export const COLORS = {
   woodDark: 0xA0522D,
   success: 0x4CAF50,
   error: 0xF44336,
+  warning: 0xFF9800,
   gold: 0xFFD700,
   trayBg: 0xFFF3E0,
   trayBorder: 0xBCAAA4,

@@ -1,4 +1,4 @@
-import { Container, Graphics } from 'pixi.js'
+import { Container, Graphics, Text } from 'pixi.js'
 import { COLORS, DESIGN_WIDTH, DESIGN_HEIGHT, TOLERANCE } from '../config/denominations.js'
 import { GAME_MODES } from '../config/gameModes.js'
 import { OrderArea } from '../components/OrderArea.js'
@@ -92,6 +92,28 @@ export class GameScene extends Container {
     this._toast = new AchievementToast()
     this.addChild(this._toast)
 
+    // 确认按钮：金额 >= target 时可点击完成订单
+    this._confirmBtn = new Container()
+    this._confirmBtn.eventMode = 'static'
+    this._confirmBtn.cursor = 'pointer'
+    this._confirmBtn.visible = false
+    this._confirmBtn.x = DESIGN_WIDTH / 2
+    this._confirmBtn.y = 430
+    const confirmBg = new Graphics()
+    confirmBg.roundRect(-140, -32, 280, 64, 32)
+    confirmBg.fill({ color: COLORS.success })
+    this._confirmBtn.addChild(confirmBg)
+    this._confirmBtnBg = confirmBg
+    const confirmText = new Text({
+      text: '✓ 确认',
+      style: { fontFamily: 'Arial, sans-serif', fontSize: 28, fill: 0xFFFFFF, fontWeight: 'bold' },
+    })
+    confirmText.anchor.set(0.5)
+    this._confirmBtn.addChild(confirmText)
+    this._confirmBtnText = confirmText
+    this._confirmBtn.on('pointerdown', () => this._onConfirm())
+    this.addChild(this._confirmBtn)
+
     this.eventMode = 'static'
     this.on('pointermove', (e) => this._onDragMove(e))
     this.on('pointerup', () => this._onDragEnd())
@@ -136,7 +158,35 @@ export class GameScene extends Container {
     this._statusBar.setTimer(this._countdown, this._totalTime)
 
     this._resultPopup.hide()
+    this._updateConfirmButton()
     this._isActive = true
+  }
+
+  _updateConfirmButton() {
+    if (!this._isActive) {
+      this._confirmBtn.visible = false
+      return
+    }
+    const canConfirm = this._currentAmount >= this._targetAmount - TOLERANCE && this._currentAmount > 0
+    this._confirmBtn.visible = canConfirm
+    if (canConfirm) {
+      const isChange = this._order.mode === GAME_MODES.CHANGE
+      this._confirmBtnText.text = isChange ? '✓ 确认找零' : '✓ 确认收款'
+      const isCorrect = Math.abs(this._currentAmount - this._targetAmount) <= TOLERANCE
+      this._confirmBtnBg.clear()
+      this._confirmBtnBg.roundRect(-140, -32, 280, 64, 32)
+      this._confirmBtnBg.fill({ color: isCorrect ? COLORS.success : COLORS.warning })
+    }
+  }
+
+  _onConfirm() {
+    if (!this._isActive) return
+    const diff = Math.abs(this._currentAmount - this._targetAmount)
+    if (diff <= TOLERANCE) {
+      this._onSuccess()
+    } else if (this._currentAmount > this._targetAmount) {
+      this._onFailOvershot()
+    }
   }
 
   _nextOrder() {
@@ -193,6 +243,7 @@ export class GameScene extends Container {
     if (diff > TOLERANCE) {
       this._overshotThisOrder = true
     }
+    this._updateConfirmButton()
     if (Math.abs(diff) <= TOLERANCE) {
       this._onSuccess()
     }
@@ -203,14 +254,35 @@ export class GameScene extends Container {
     this._currentAmount = this._cashTray.currentAmount
     this._orderArea.updateDiff(this._currentAmount)
 
+    this._updateConfirmButton()
     const diff = Math.abs(this._currentAmount - this._targetAmount)
     if (diff <= TOLERANCE && this._currentAmount > 0) {
       this._onSuccess()
     }
   }
 
+  _onFailOvershot() {
+    this._isActive = false
+    AudioManager.playFail()
+    this._confirmBtn.visible = false
+
+    this._statsMgr.recordFail()
+    const result = this._levelMgr.onError()
+    this._statusBar.setCombo(this._streak)
+
+    if (result.gameOver) {
+      setTimeout(() => this._endRun(), 300)
+      return
+    }
+
+    setTimeout(() => {
+      this._resultPopup.showFail(this._order, this._currentAmount)
+    }, 200)
+  }
+
   _onSuccess() {
     this._isActive = false
+    this._confirmBtn.visible = false
     AudioManager.playSuccess()
 
     const orderMs = performance.now() - this._orderStartTime
@@ -260,6 +332,7 @@ export class GameScene extends Container {
 
   _onTimeout() {
     this._isActive = false
+    this._confirmBtn.visible = false
     AudioManager.playFail()
 
     this._statsMgr.recordFail()
